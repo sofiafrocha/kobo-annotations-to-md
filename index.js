@@ -49,12 +49,11 @@ db.all(query, [], (err, rows) => {
   startNewFile(appender, books, rows[0]);
 
   rows.forEach((row) => {
-    console.log(row);
     if (books.includes(row.Title)) {
-        // Keep writing into the file
+        // Keep writing into the current file
         writeAnnotation(appender, row);
     } else {
-        // close and write new file
+        // Start and write to a new file
         appender.end();
         appender = fs.createWriteStream(`./${targetDirectory}/${row.Title}.md`, {
             flags: "a",

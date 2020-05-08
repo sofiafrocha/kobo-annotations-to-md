@@ -1,11 +1,11 @@
 var os = require("os");
 var fs = require("fs");
 var parser = require("xml2json");
-var appender = fs.createWriteStream("highlights.md", {
+var appender = fs.createWriteStream("annotations.md", {
   flags: "a",
 });
 
-fs.readFile("./highlights.annot", function (err, data) {
+fs.readFile("./annotations.annot", function (err, data) {
   var json = parser.toJson(data);
   const { annotationSet } = JSON.parse(json);
 
