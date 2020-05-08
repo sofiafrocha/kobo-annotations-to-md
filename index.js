@@ -3,6 +3,8 @@ const fs = require("fs");
 const targetDirectory = './highlights';
 const sqlite3 = require("sqlite3");
 const db = new sqlite3.Database("./KoboReader.sqlite");
+// modified from there:
+// https://gist.github.com/raivivek/b8966dd3c255b71c8ed53e6a155b3c0e
 const query = `select
 title,
 text, annotation, attribution,
@@ -20,12 +22,20 @@ if (!fs.existsSync(targetDirectory)){
     fs.mkdirSync(targetDirectory);
 }
 
-function writeAnnotationLine(appenderObject, row) {
-    appenderObject.write(`> ${row.Text}` + lineBreak);
-    if (row.Annotation) {
-        appenderObject.write(`_${row.Annotation}_` + lineBreak);
+function writeAnnotation(appenderObject, row) {
+    const { Text, Annotation, DateCreated, StartContainerPath } = row;
+
+    appenderObject.write(`> ${Text}` + lineBreak);
+    if (Annotation) {
+        appenderObject.write(`_${Annotation}_` + lineBreak);
     }
-    appenderObject.write(`${row.DateCreated} — ${row.StartContainerPath}` + lineBreak);
+    appenderObject.write(`${DateCreated} — ${StartContainerPath}` + lineBreak);
+}
+
+function startNewFile(appenderObject, bookList, row) {
+    bookList.push(row.Title);
+    appenderObject.write(row.Title + lineBreak);
+    appenderObject.write(row.Attribution + lineBreak);
 }
 
 db.all(query, [], (err, rows) => {
@@ -36,26 +46,21 @@ db.all(query, [], (err, rows) => {
   let appender = fs.createWriteStream(`./${targetDirectory}/${rows[0].Title}.md`, {
       flags: "a",
   });
-  books.push(rows[0].Title);
-  appender.write(rows[0].Title + lineBreak);
-  appender.write(rows[0].Attribution + lineBreak);
-
+  startNewFile(appender, books, rows[0]);
 
   rows.forEach((row) => {
     console.log(row);
     if (books.includes(row.Title)) {
         // Keep writing into the file
-        writeAnnotationLine(appender, row);
+        writeAnnotation(appender, row);
     } else {
         // close and write new file
         appender.end();
         appender = fs.createWriteStream(`./${targetDirectory}/${row.Title}.md`, {
             flags: "a",
         });
-        books.push(row.Title);
-        appender.write(row.Title + lineBreak);
-        appender.write(row.Attribution + lineBreak);
-        writeAnnotationLine(appender, row);
+        startNewFile(appender, books, row);
+        writeAnnotation(appender, row);
     }
   });
 

@@ -7,10 +7,7 @@ var appender = fs.createWriteStream("highlights.md", {
 
 fs.readFile("./highlights.annot", function (err, data) {
   var json = parser.toJson(data);
-  // console.log("to json ->", json);
   const { annotationSet } = JSON.parse(json);
-
-  // console.log("annotationSet", annotationSet);
 
   const relevantData = {
     title: annotationSet.publication["dc:title"],
@@ -27,8 +24,6 @@ fs.readFile("./highlights.annot", function (err, data) {
       return basicItem;
     }),
   };
-
-  console.log("relevantData", relevantData);
   const lineBreak = os.EOL + os.EOL;
 
   appender.write(relevantData.title + lineBreak);
