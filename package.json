@@ -9,6 +9,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "sqlite3": "^4.2.0",
     "xml2json": "^0.12.0"
   }
 }
